@@ -9,12 +9,12 @@ type proxy interface {
 	check(int)
 }
 
-type mPool struct {
+type SsdbPool struct {
 	proxy
 }
 
-func newMPool(rw proxy) *mPool {
-	return &mPool{rw}
+func newMPool(rw proxy) *SsdbPool {
+	return &SsdbPool{rw}
 }
 
 

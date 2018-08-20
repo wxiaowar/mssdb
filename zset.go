@@ -12,7 +12,7 @@ import (
 	args: 必须是key <score,id>...的列表
 	return： 数量，error
 */
-func (rp *mPool) ZAdd(args ...interface{}) (interface{}, error) {
+func (rp *SsdbPool) ZAdd(args ...interface{}) (interface{}, error) {
 	if (len(args)-1)%2 != 0 {
 		return 0, errors.New("zadd invalid arguments number")
 	}
@@ -37,14 +37,14 @@ func (rp *mPool) ZAdd(args ...interface{}) (interface{}, error) {
 //	return scon.Do("zadd", args...)
 //}
 
-func (rp *mPool) ZScore(key interface{}, id interface{}) (score int64, e error) {
+func (rp *SsdbPool) ZScore(key interface{}, id interface{}) (score int64, e error) {
 	conn := rp.getRead()
 	defer conn.Close()
 	return redigo.Int64(conn.Do("zscore", key, id))
 }
 
 //ZIsMember判断是否是有序集合的成员
-func (rp *mPool) ZIsMember(key interface{}, id interface{}) (isMember bool, e error) {
+func (rp *SsdbPool) ZIsMember(key interface{}, id interface{}) (isMember bool, e error) {
 	conn := rp.getRead()
 	defer conn.Close()
 	_, e = redigo.Float64(conn.Do("zscore", key, id))
@@ -65,7 +65,7 @@ func (rp *mPool) ZIsMember(key interface{}, id interface{}) (isMember bool, e er
 //	args: key <id>的列表
 //返回值：
 //	: 每条命令影响的行数
-func (rp *mPool) ZRem(args ...interface{}) (interface{}, error) {
+func (rp *SsdbPool) ZRem(args ...interface{}) (interface{}, error) {
 	if len(args) < 2 {
 		return 0, errors.New("zrem invalid arguments number")
 	}
@@ -76,14 +76,14 @@ func (rp *mPool) ZRem(args ...interface{}) (interface{}, error) {
 }
 
 // key, incr, id
-func (rp *mPool) ZIncrBy(key interface{}, increment interface{}, id interface{}) (int64_score interface{}, e error) {
+func (rp *SsdbPool) ZIncrBy(key interface{}, increment interface{}, id interface{}) (int64_score interface{}, e error) {
 	conn := rp.getWrite()
 	defer conn.Close()
 	return conn.Do("zincrby", key, increment, id)
 }
 
 // return number between min max
-func (rp *mPool) ZCount(key interface{}, min, max float64) (count int64, e error) {
+func (rp *SsdbPool) ZCount(key interface{}, min, max float64) (count int64, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Int64(scon.Do("zcount", key, min, max))
@@ -92,35 +92,35 @@ func (rp *mPool) ZCount(key interface{}, min, max float64) (count int64, e error
 // TODO zsum/zavg
 
 // return total number
-func (rp *mPool) ZCard(key interface{}) (num int64, e error) {
+func (rp *SsdbPool) ZCard(key interface{}) (num int64, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Int64(scon.Do("zcard", key))
 }
 
 //升序(从0开始)
-func (rp *mPool) ZRank(key interface{}, id interface{}) (rank int64, e error) {
+func (rp *SsdbPool) ZRank(key interface{}, id interface{}) (rank int64, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Int64(scon.Do("zrank", key, id))
 }
 
 //降序
-func (rp *mPool) ZRevRank(key interface{}, id interface{}) (rank int64, e error) {
+func (rp *SsdbPool) ZRevRank(key interface{}, id interface{}) (rank int64, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Int64(scon.Do("zrevrank", key, id))
 }
 
 //升序 [start_rank, end_rank)
-func (rp *mPool) ZRange(key interface{}, start, end int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRange(key interface{}, start, end int) (reply []interface{}, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Values(scon.Do("zrange", key, start, end))
 }
 
 //降序 [start_rank, end_rank)
-func (rp *mPool) ZRevRange(key interface{}, start, end int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRevRange(key interface{}, start, end int) (reply []interface{}, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Values(scon.Do("zrevrange", key, start, end))
@@ -139,7 +139,7 @@ func (rp *mPool) ZRevRange(key interface{}, start, end int) (reply []interface{}
 //}
 
 //获取SortedSet的ID集合升序
-func (rp *mPool) ZRangeWithScore(key interface{}, start, end int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRangeWithScore(key interface{}, start, end int) (reply []interface{}, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 
@@ -148,7 +148,7 @@ func (rp *mPool) ZRangeWithScore(key interface{}, start, end int) (reply []inter
 }
 
 //获取SortedSet的ID集合降序
-func (rp *mPool) ZRevRangeWithScore(key interface{}, start, end int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRevRangeWithScore(key interface{}, start, end int) (reply []interface{}, e error) {
 	scon := rp.getRead()
 	defer scon.Close()
 	return redigo.Values(scon.Do("zrevrange", key, start, end, "withscores"))
@@ -175,7 +175,7 @@ func (rp *mPool) ZRevRangeWithScore(key interface{}, start, end int) (reply []in
 //}
 
 //
-func (rp *mPool) ZRangeByScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRangeByScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
 	if limit <= 0 {
 		limit = math.MaxInt32
 	}
@@ -184,7 +184,7 @@ func (rp *mPool) ZRangeByScore(key interface{}, min, max int64, limit int) (repl
 	return redigo.Values(scon.Do("zrangebyscore", key, min, max, "limit", 0, limit))
 }
 
-func (rp *mPool) ZRevRangeByScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRevRangeByScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
 	if limit <= 0 {
 		limit = math.MaxInt32
 	}
@@ -194,7 +194,7 @@ func (rp *mPool) ZRevRangeByScore(key interface{}, min, max int64, limit int) (r
 }
 
 // min <=score <= max 升序
-func (rp *mPool) ZRangeByScoreWithScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRangeByScoreWithScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
 	if limit <= 0 {
 		limit = math.MaxInt32
 	}
@@ -206,7 +206,7 @@ func (rp *mPool) ZRangeByScoreWithScore(key interface{}, min, max int64, limit i
 }
 
 // min <= score <= max 降序
-func (rp *mPool) ZRevRangeByScoreWithScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
+func (rp *SsdbPool) ZRevRangeByScoreWithScore(key interface{}, min, max int64, limit int) (reply []interface{}, e error) {
 	if limit <= 0 {
 		limit = math.MaxInt32
 	}
@@ -223,14 +223,14 @@ func (rp *mPool) ZRevRangeByScoreWithScore(key interface{}, min, max int64, limi
 
 //
 //移除有序集 key 中，所有 rank 值介于 min 和 max 之间(包括等于 min 或 max )的成员
-func (rp *mPool) ZRemRangeByRank(key interface{}, min, max int64) (interface{}, error) {
+func (rp *SsdbPool) ZRemRangeByRank(key interface{}, min, max int64) (interface{}, error) {
 	conn := rp.getWrite()
 	defer conn.Close()
 	return conn.Do("zremrangebyrank", key, min, max)
 }
 
 //移除有序集 key 中，所有 score 值介于 min 和 max 之间(包括等于 min 或 max )的成员
-func (rp *mPool) ZRemRangeByScore(key interface{}, min, max int64) (interface{}, error) {
+func (rp *SsdbPool) ZRemRangeByScore(key interface{}, min, max int64) (interface{}, error) {
 	conn := rp.getWrite()
 	defer conn.Close()
 	return conn.Do("zremrangebyscore", key, min, max)
